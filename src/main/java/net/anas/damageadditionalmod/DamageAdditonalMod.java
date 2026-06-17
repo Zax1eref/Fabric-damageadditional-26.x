@@ -1,17 +1,27 @@
 package net.anas.damageadditionalmod;
 
 import net.fabricmc.api.ModInitializer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
 
 public class DamageAdditonalMod implements ModInitializer {
-	public static final String MOD_ID = "damage-additonal-mod";
-	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-
 	@Override
 	public void onInitialize() {
+		DamageAdditionalConfig.load();
+		DamageAdditionalCommands.register();
 
-		LOGGER.info("Hello Fabric world!");
+		ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
+			if (entity instanceof Mob && damageSource.getEntity() instanceof Player player) {
+				AttributeInstance attackDamage = player.getAttribute(Attributes.ATTACK_DAMAGE);
+				if (attackDamage != null) {
+					attackDamage.setBaseValue(attackDamage.getBaseValue() + DamageAdditionalConfig.INSTANCE.killDamageBonus);
+				}
+			}
+		});
 	}
 }
+
+// DamageAdditonalMod
